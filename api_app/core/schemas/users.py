@@ -18,7 +18,6 @@ class UserCreateUpdate(BaseModel):
 
 
 class UserResponse(UserCreateUpdate):
-    id: int
     created_at: datetime
     last_activity: datetime
     is_staff: bool

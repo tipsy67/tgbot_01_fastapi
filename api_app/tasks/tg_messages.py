@@ -1,14 +1,12 @@
-import datetime
 import logging
 from typing import Iterable
 
 from aiogram import Bot
 
 from api_app.core.config import settings
-from api_app.core.taskiq_broker import broker, redis_source
+from api_app.core.taskiq_broker import broker
 from api_app.datebases.users_requests import get_user, get_users
-from api_app.schemas.users import UserResponse
-from api_app.tasks.tg_messages_utils import reference_points
+from api_app.core.schemas import UserResponse
 
 logger = logging.getLogger("taskiq")
 logger.setLevel(logging.INFO)

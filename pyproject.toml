@@ -1,4 +1,4 @@
-[tool.poetry]
+ [tool.poetry]
 name = "tgbot-01-fastapi"
 version = "0.1.0"
 description = ""
@@ -17,6 +17,8 @@ taskiq-redis = "^1.1.0"
 pydantic = "^2.11.7"
 pydantic-settings = "^2.10.1"
 orjson = "^3.11.3"
+asyncpg = "^0.30.0"
+sqlalchemy = {extras = ["asyncio"], version = "^2.0.43"}
 
 
 [build-system]

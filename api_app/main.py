@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 
+from api_app.core.db_helper import db_helper
 from api_app.core.taskiq_broker import broker, redis_source
 from api_app.routers import users
 
@@ -18,6 +19,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
     # shutdown
+    await db_helper.dispose()
+
     if not broker.is_worker_process:
         await broker.shutdown()
     await redis_source.shutdown()

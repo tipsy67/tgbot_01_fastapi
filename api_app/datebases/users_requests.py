@@ -1,12 +1,6 @@
-from datetime import datetime
 from typing import Iterable
 
-from fastapi import HTTPException
-
-from starlette import status
-
-
-from api_app.schemas.users import (
+from api_app.core.schemas import (
     UserCreateUpdate,
     UserResponse,
 )

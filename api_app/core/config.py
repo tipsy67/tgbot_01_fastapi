@@ -4,64 +4,26 @@ Settings for the API application.
 
 from enum import Enum
 
-from pydantic import AmqpDsn, BaseModel, Extra, Field
+from pydantic import AmqpDsn, BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-
-class ConferenceBackends(str, Enum):
-    LIVEKIT = "livekit"
-    JITSI = "jitsi"
-    GOOGLE_MEET = "google_meet"
-
-
-class LiveKitSettings(BaseModel):
-    host: str = "https://localhost:5173"
-
-
-class GoogleMeetSettings(BaseModel):
-    host: str = "https://meet.google.com"
-    credential_dir: str = "google_meet_credentials.json"
-
-
-class JitsiSettings(BaseModel):
-    host: str = "https://meet.jit.si"
-
-
-class ConferenceSettings(BaseModel):
-    backend_default: ConferenceBackends = ConferenceBackends.LIVEKIT
-    livekit: LiveKitSettings = LiveKitSettings()
-    google_meet: GoogleMeetSettings = GoogleMeetSettings()
-    jitsi: JitsiSettings = JitsiSettings()
-
-    @property
-    def backend(self) -> LiveKitSettings | GoogleMeetSettings | JitsiSettings:
-        if self.backend_default == ConferenceBackends.LIVEKIT:
-            return self.livekit
-        elif self.backend_default == ConferenceBackends.GOOGLE_MEET:
-            return self.google_meet
-        elif self.backend_default == ConferenceBackends.JITSI:
-            return self.jitsi
-
-
-class RabbitMQSettings(BaseSettings):
-    model_config = SettingsConfigDict(
-        env_file=(".env",),
-        case_sensitive=False,
-        env_nested_delimiter="__",
-        extra="ignore",
-    )
-    user: str = Field("guest", alias="RABBITMQ_USER")
-    password: str = Field("guest", alias="RABBITMQ_PASSWORD")
-    host: str = Field("localhost", alias="RABBITMQ_HOST")
-
-    @property
-    def url(self):
-        return f"amqp://{self.user}:{self.password}@{self.host}:5672"
-
 
 class TGSettings(BaseModel):
     token: str = ""
 
+class DBSettings(BaseModel):
+        url: PostgresDsn
+        echo: bool = False
+        echo_pool: bool = False
+        pool_size: int = 50
+        max_overflow: int = 10
+
+        naming_convention: dict[str, str] = {
+            "ix": "ix_%(column_0_label)s",
+            "uq": "uq_%(table_name)s_%(column_0_N_name)s",
+            "ck": "ck_%(table_name)s_%(constraint_name)s",
+            "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+            "pk": "pk_%(table_name)s",
+        }
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -74,12 +36,9 @@ class Settings(BaseSettings):
         env_nested_delimiter="__",
         extra="ignore",
     )
-    conference: ConferenceSettings = ConferenceSettings()
-    rabbitmq: RabbitMQSettings = RabbitMQSettings()
     tg: TGSettings = TGSettings()
     default_language_code: str = "en"
 
 
 settings = Settings()
 # print(settings.model_dump())
-# print(settings.rabbitmq.url)
