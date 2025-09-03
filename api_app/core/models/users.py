@@ -26,3 +26,11 @@ class User(Base):
     is_staff: Mapped[bool] = mapped_column(default=False)
     is_admin: Mapped[bool] = mapped_column(default=False)
     ticket_id: Mapped[Optional[str]] = mapped_column()
+
+
+class Ticket(Base):
+    __tablename__ = "tickets"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    is_fired: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column()
+    action: Mapped[Optional[str]] = mapped_column(default=None)
