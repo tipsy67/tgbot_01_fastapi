@@ -68,7 +68,7 @@ class Ticket(Base):
 
     is_fired: Mapped[bool] = mapped_column(default=False)
     fired_at: Mapped[datetime] = mapped_column(DateTime)
-    prize_id = Mapped[int] = mapped_column(Integer, ForeignKey("prizes.id"), nullable=False)
+    prize_id: Mapped[int] = mapped_column(Integer, ForeignKey("prizes.id"), nullable=False)
     ticket = relationship(
         "Prize",
         back_populates="prizes"
