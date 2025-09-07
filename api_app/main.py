@@ -7,7 +7,7 @@ from fastapi.responses import ORJSONResponse
 
 from api_app.core.db_helper import db_helper
 from api_app.core.taskiq_broker import broker, redis_source
-from api_app.routers import users
+from api_app.routers import router
 
 
 @asynccontextmanager
@@ -55,5 +55,5 @@ async def root():
     return {"message": "Hello!"}
 
 
-api_main_app.include_router(users.router)
+api_main_app.include_router(router)
 

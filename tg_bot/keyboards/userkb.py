@@ -6,7 +6,7 @@ from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
 
 
 def get_web_app():
-    url_webapp=os.environ.get("URL_WEBAPP")
+    url_webapp=os.environ.get("WEBAPP__URL")
     timestamp = int(datetime.now().timestamp())
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[

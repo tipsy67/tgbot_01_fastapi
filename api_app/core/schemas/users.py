@@ -14,13 +14,12 @@ class UserCreateUpdate(BaseModel):
     phone_number: Optional[str] = None
     language_code: Optional[str] = settings.default_language_code
     token: Optional[str] = None
-    ticket_id: Optional[str] = None
 
 
 class UserResponse(UserCreateUpdate):
     created_at: datetime
     last_activity: datetime
-    is_staff: bool
+    is_staff: bool = False
     is_admin: bool = False
 
 

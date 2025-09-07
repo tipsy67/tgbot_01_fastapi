@@ -1,17 +1,26 @@
 """
 Settings for the API application.
 """
+from pathlib import Path
 
-from enum import Enum
-
-from pydantic import AmqpDsn, BaseModel, PostgresDsn
+from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+
+class ApiV1Prefix(BaseModel):
+    prefix: str = "/v1"
+    users: str = "/users"
+
+class ApiPrefix(BaseModel):
+    prefix: str = "/api"
+    v1: ApiV1Prefix = ApiV1Prefix()
 
 class TGSettings(BaseModel):
     token: str = ""
 
 class DBSettings(BaseModel):
-        url: PostgresDsn
+        url: PostgresDsn = ""
         echo: bool = False
         echo_pool: bool = False
         pool_size: int = 50
@@ -27,18 +36,16 @@ class DBSettings(BaseModel):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=(
-            "api_app/.env",
-            "api_app/.env.dan",
-            # "api_app/.env.production",
-        ),  # todo: убрать прямой путь и сделать относительный путь
+        env_file=".env",
         case_sensitive=False,
         env_nested_delimiter="__",
         extra="ignore",
     )
+    PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent.parent
     tg: TGSettings = TGSettings()
     default_language_code: str = "en"
-
+    api: ApiPrefix = ApiPrefix()
+    db: DBSettings = DBSettings()
 
 settings = Settings()
 # print(settings.model_dump())

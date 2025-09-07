@@ -1,8 +1,8 @@
-"""Initial migration for PostgreSQL
+"""init
 
-Revision ID: a78c29001352
+Revision ID: 5cf7681fffe0
 Revises: 
-Create Date: 2025-09-06 23:45:08.848034
+Create Date: 2025-09-07 22:48:07.959682
 
 """
 from typing import Sequence, Union
@@ -11,7 +11,8 @@ from alembic import op
 import sqlalchemy as sa
 
 
-revision: str = 'a78c29001352'
+# revision identifiers, used by Alembic.
+revision: str = '5cf7681fffe0'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -24,10 +25,10 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('description', sa.String(length=255), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_prizes'))
     )
     op.create_table('users',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.BigInteger(), nullable=False),
     sa.Column('username', sa.String(length=50), nullable=True),
     sa.Column('first_name', sa.String(length=50), nullable=False),
     sa.Column('last_name', sa.String(length=50), nullable=True),
@@ -38,22 +39,22 @@ def upgrade() -> None:
     sa.Column('last_activity', sa.DateTime(), nullable=False),
     sa.Column('is_staff', sa.Boolean(), nullable=False),
     sa.Column('is_admin', sa.Boolean(), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_users'))
     )
     op.create_table('tickets',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=False),
     sa.Column('action', sa.CHAR(length=4), nullable=False),
     sa.Column('action_description', sa.String(length=255), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('initiator_id', sa.Integer(), nullable=False),
     sa.Column('is_fired', sa.Boolean(), nullable=False),
     sa.Column('fired_at', sa.DateTime(), nullable=False),
-    sa.Column('prize_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['initiator_id'], ['users.id'], ),
-    sa.ForeignKeyConstraint(['prize_id'], ['prizes.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.Column('user_id', sa.BigInteger(), nullable=False),
+    sa.Column('initiator_id', sa.BigInteger(), nullable=False),
+    sa.Column('prize_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['initiator_id'], ['users.id'], name=op.f('fk_tickets_initiator_id_users')),
+    sa.ForeignKeyConstraint(['prize_id'], ['prizes.id'], name=op.f('fk_tickets_prize_id_prizes')),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], name=op.f('fk_tickets_user_id_users')),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_tickets'))
     )
 
 

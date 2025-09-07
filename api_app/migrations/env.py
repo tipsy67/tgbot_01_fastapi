@@ -21,7 +21,7 @@ from api_app.core.models.users import Base
 config = context.config
 
 load_dotenv()
-database_url = os.getenv("DB_URL")
+database_url = os.getenv("DB__URL")
 print(database_url)
 if database_url:
     config.set_main_option("sqlalchemy.url", database_url)

@@ -10,7 +10,7 @@ from handlers.user import user
 
 
 async def main():
-    bot = Bot(token=os.environ.get("TG_TOKEN"))  # , session=session)
+    bot = Bot(token=os.environ.get("TG__TOKEN"))  # , session=session)
     dp = Dispatcher()
     dp.include_routers(
         user,

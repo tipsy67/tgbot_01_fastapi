@@ -1,34 +1,34 @@
-from fastapi import APIRouter
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.testing.config import db
 from starlette import status
 
-from api_app.datebases import (
-    users_requests as db,
-)  # напрямую через функции работающие с БД
-from api_app.core.schemas import (
-    UserCreateUpdate,
-    UserResponse,
-)
-from api_app.tasks.tg_messages import print_task
+from api_app.core.db_helper import db_helper
+from api_app.core.schemas.users import UserCreateUpdate, UserResponse
+from api_app.crud.users import set_user
 
-router = APIRouter(prefix="/users", tags=["users"])
+# from api_app.tasks.tg_messages import print_task
+
+router = APIRouter()
 
 
-@router.get("/test")
-async def test():
-    await print_task.kiq()
-    return {"status": "ok"}
+# @router.get("/test")
+# async def test():
+#     await print_task.kiq()
+#     return {"status": "ok"}
+#
+#
+# @router.get("", status_code=status.HTTP_200_OK, response_model=None)
+# async def get_user_rt(tg_user_id: int) -> None:
+#     return await db.get_user(tg_user_id)
 
 
-@router.get("", status_code=status.HTTP_200_OK, response_model=UserResponse)
-async def get_user_rt(tg_user_id: int) -> UserResponse:
-    return await db.get_user(tg_user_id)
-
-
-@router.post("", status_code=status.HTTP_200_OK)
-async def set_user_rt(tg_user: UserCreateUpdate) -> UserResponse:
-    return await db.set_user(tg_user)
-
-
+@router.post("", status_code=status.HTTP_200_OK, response_model=UserResponse)
+async def set_user_rt(tg_user: UserCreateUpdate, session: Annotated[AsyncSession, Depends(db_helper.session_getter)]) -> UserResponse:
+    user = await set_user(tg_user, session)
+    return user
 
 
 
