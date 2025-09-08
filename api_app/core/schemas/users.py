@@ -1,24 +1,24 @@
 from datetime import datetime
+from uuid import UUID
 
-from pydantic import BaseModel, Field
-from typing_extensions import Optional
+from pydantic import BaseModel
 
 from api_app.core.config import settings
 
 
 class UserCreateUpdate(BaseModel):
     id: int
-    username: Optional[str] = None
+    username: str|None = None
     first_name: str
-    last_name: Optional[str] = None
-    phone_number: Optional[str] = None
-    language_code: Optional[str] = settings.default_language_code
-    token: Optional[str] = None
-
+    last_name: str|None = None
+    phone_number: str|None = None
+    language_code: str|None= settings.default_language_code
+    payload: UUID|None = None
 
 class UserResponse(UserCreateUpdate):
     created_at: datetime
     last_activity: datetime
+    user_uuid: UUID
     is_staff: bool = False
     is_admin: bool = False
 

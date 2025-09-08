@@ -26,7 +26,7 @@ router = APIRouter()
 
 
 @router.post("", status_code=status.HTTP_200_OK, response_model=UserResponse)
-async def set_user_rt(tg_user: UserCreateUpdate, session: Annotated[AsyncSession, Depends(db_helper.session_getter)]) -> UserResponse:
+async def set_user_rt(tg_user: UserCreateUpdate, session: Annotated[AsyncSession, Depends(db_helper.session_getter)]):
     user = await set_user(tg_user, session)
     return user
 

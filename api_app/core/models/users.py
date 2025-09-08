@@ -1,6 +1,5 @@
+import uuid
 from datetime import datetime, timezone
-
-from typing import Optional
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.functions import func
@@ -32,14 +31,14 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    username: Mapped[Optional[str]] = mapped_column(String(50))
+    username: Mapped[str|None] = mapped_column(String(50))
     first_name: Mapped[str] = mapped_column(String(50))
-    last_name: Mapped[Optional[str]] = mapped_column(String(50))
-    phone_number: Mapped[Optional[str]] = mapped_column(String(12))
-    language_code: Mapped[Optional[str]] = mapped_column(String(2), default= settings.default_language_code)
-    token: Mapped[Optional[str] ] = mapped_column(String(50))
+    last_name: Mapped[str|None] = mapped_column(String(50))
+    phone_number: Mapped[str|None] = mapped_column(String(12))
+    language_code: Mapped[str|None] = mapped_column(String(2), default= settings.default_language_code)
+    user_uuid: Mapped[uuid.UUID] = mapped_column(default=uuid.uuid4)
     created_at: Mapped[datetime] = mapped_column(DateTime)
-    last_activity: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    last_activity: Mapped[datetime|None] = mapped_column(DateTime)
     is_staff: Mapped[bool] = mapped_column(default=False)
     is_admin: Mapped[bool] = mapped_column(default=False)
     tickets: Mapped[list["Ticket"]] = relationship(
@@ -71,19 +70,19 @@ class Prize(Base):
 class Ticket(Base):
     __tablename__ = "tickets"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
-    action: Mapped[str] = mapped_column(CHAR(4))
+    created_at: Mapped[datetime] = mapped_column(DateTime)
+    action: Mapped[str|None] = mapped_column(CHAR(4))
     action_description: Mapped[str] = mapped_column(String(255), default="")
     is_fired: Mapped[bool] = mapped_column(default=False)
-    fired_at: Mapped[datetime] = mapped_column(DateTime)
+    fired_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped["User"] = relationship("User", back_populates="tickets", foreign_keys=[user_id])
 
-    initiator_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    initiator_id: Mapped[int|None] = mapped_column(ForeignKey("users.id"))
     initiator: Mapped["User"] = relationship("User", back_populates="initiated_tickets", foreign_keys=[initiator_id])
 
-    prize_id: Mapped[int] = mapped_column(Integer, ForeignKey("prizes.id"), nullable=True)
-    prize:Mapped[Optional["Prize"]] = relationship("Prize", back_populates="tickets", foreign_keys=[prize_id]
+    prize_id: Mapped[int|None] = mapped_column(Integer, ForeignKey("prizes.id"))
+    prize:Mapped["Prize|None"] = relationship("Prize", back_populates="tickets", foreign_keys=[prize_id]
     )
 
