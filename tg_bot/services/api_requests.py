@@ -50,11 +50,12 @@ def aiohttp_request(method: str = "POST", url: str = None, status_code: int = 20
 @aiohttp_request(method="POST", url=APIPath.set_user)
 async def set_user(user, payload=None):
     json = {
-        "id": user.id,
-        "username": user.username,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "language_code": user.language_code,
+        "id": getattr(user, 'id', None) or getattr(user, 'user_id', None),
+        "username": getattr(user, 'username', None),
+        "first_name": getattr(user, 'first_name', None),
+        "last_name": getattr(user, 'last_name', None),
+        "language_code": getattr(user, 'language_code', None),
+        "phone_number": getattr(user, 'phone_number', None)
     }
     if payload is not None:
         json["payload"] = payload
