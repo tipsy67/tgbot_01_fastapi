@@ -30,5 +30,11 @@ async def set_user_rt(tg_user: UserCreateUpdate, session: Annotated[AsyncSession
     user = await set_user(tg_user, session)
     return user
 
+@router.get("/status")
+async def get_status_rt(tg_user_id:int, session: AsyncSession = Depends(db_helper.session_getter)):
+    return {"status": False}
 
+@router.get("/tickets")
+async def get_status_rt(tg_user_id:int, session: AsyncSession = Depends(db_helper.session_getter)):
+    return {"tickets": 10}
 

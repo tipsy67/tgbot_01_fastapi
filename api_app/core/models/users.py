@@ -54,6 +54,8 @@ class User(Base):
     )
 
 
+
+
 class Prize(Base):
     __tablename__ = "prizes"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)

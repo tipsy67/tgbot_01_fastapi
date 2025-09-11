@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 
+from api_app.core.config import settings
 from api_app.core.db_helper import db_helper
 from api_app.core.taskiq_broker import broker, redis_source
 from api_app.routers import router
@@ -36,9 +37,9 @@ origins = [
     "http://localhost:8000",
     "http://127.0.0.1",
     "http://127.0.0.1:8000",
-    "https://2deyhh-37-44-40-134.ru.tuna.am",
+    settings.webapp.url,
 ]
-
+print(origins)
 # Настройка CORS
 api_main_app.add_middleware(
     CORSMiddleware,

@@ -3,7 +3,7 @@ Settings for the API application.
 """
 from pathlib import Path
 
-from pydantic import BaseModel, PostgresDsn
+from pydantic import BaseModel, PostgresDsn, AnyUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -20,19 +20,22 @@ class TGSettings(BaseModel):
     token: str = ""
 
 class DBSettings(BaseModel):
-        url: PostgresDsn = ""
-        echo: bool = False
-        echo_pool: bool = False
-        pool_size: int = 50
-        max_overflow: int = 10
+    url: PostgresDsn = ""
+    echo: bool = False
+    echo_pool: bool = False
+    pool_size: int = 50
+    max_overflow: int = 10
 
-        naming_convention: dict[str, str] = {
-            "ix": "ix_%(column_0_label)s",
-            "uq": "uq_%(table_name)s_%(column_0_N_name)s",
-            "ck": "ck_%(table_name)s_%(constraint_name)s",
-            "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-            "pk": "pk_%(table_name)s",
-        }
+    naming_convention: dict[str, str] = {
+        "ix": "ix_%(column_0_label)s",
+        "uq": "uq_%(table_name)s_%(column_0_N_name)s",
+        "ck": "ck_%(table_name)s_%(constraint_name)s",
+        "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+        "pk": "pk_%(table_name)s",
+    }
+
+class WebAppSettings(BaseModel):
+    url: str = ""
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -46,6 +49,7 @@ class Settings(BaseSettings):
     default_language_code: str = "en"
     api: ApiPrefix = ApiPrefix()
     db: DBSettings = DBSettings()
+    webapp: WebAppSettings = WebAppSettings()
 
 settings = Settings()
 # print(settings.model_dump())
