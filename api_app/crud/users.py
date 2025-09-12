@@ -55,7 +55,7 @@ async def create_user(tg_user: UserCreateUpdate, session:AsyncSession) -> User:
 
 async def set_user(tg_user: UserCreateUpdate, session: AsyncSession) -> User:
     """
-    находит пользователя по tg_id для изменения данных о нем или создает нового
+    находит пользователя по id для изменения данных о нем или создает нового
     """
     user = await get_user(tg_user.id, session=session)
 
@@ -71,7 +71,10 @@ async def set_user(tg_user: UserCreateUpdate, session: AsyncSession) -> User:
                     session=session
                 )
     else:
-        user = update_model_from_pydantic(user, tg_user, exclude={"id", "created_at", "last_activity", "user_uuid"})
+        exclude = {"id", "created_at", "last_activity", "user_uuid"}
+        if tg_user.phone_number is None:
+            exclude.add("phone_number")
+        user = update_model_from_pydantic(user, tg_user, exclude=exclude)
         user.last_activity = datetime.now(timezone.utc).replace(tzinfo=None)
         await session.commit()
 

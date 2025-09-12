@@ -30,7 +30,8 @@ class TicketAction:
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    entrant_id: Mapped[int] = mapped_column(Integer, autoincrement=True, primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, unique=True, nullable=False, index=True)
     username: Mapped[str|None] = mapped_column(String(50))
     first_name: Mapped[str] = mapped_column(String(50))
     last_name: Mapped[str|None] = mapped_column(String(50))
@@ -78,10 +79,10 @@ class Ticket(Base):
     is_fired: Mapped[bool] = mapped_column(default=False)
     fired_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("users.id"), index=True)
     user: Mapped["User"] = relationship("User", back_populates="tickets", foreign_keys=[user_id])
 
-    initiator_id: Mapped[int|None] = mapped_column(ForeignKey("users.id"))
+    initiator_id: Mapped[int|None] = mapped_column(BigInteger, ForeignKey("users.id"), index=True)
     initiator: Mapped["User"] = relationship("User", back_populates="initiated_tickets", foreign_keys=[initiator_id])
 
     prize_id: Mapped[int|None] = mapped_column(Integer, ForeignKey("prizes.id"))

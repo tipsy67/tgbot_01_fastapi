@@ -16,6 +16,7 @@ class UserCreateUpdate(BaseModel):
     payload: UUID|None = None
 
 class UserResponse(UserCreateUpdate):
+    entrant_id: int
     created_at: datetime
     last_activity: datetime
     user_uuid: UUID
