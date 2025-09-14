@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -10,6 +11,11 @@ from api_app.core.db_helper import db_helper
 from api_app.core.taskiq_broker import broker, redis_source
 from api_app.routers import router
 
+
+logging.basicConfig(
+    level=settings.logging.log_level_value,
+    format=settings.logging.log_format,
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -39,7 +45,7 @@ origins = [
     "http://127.0.0.1:8000",
     settings.webapp.url,
 ]
-print(origins)
+
 # Настройка CORS
 api_main_app.add_middleware(
     CORSMiddleware,
@@ -57,4 +63,3 @@ async def root():
 
 
 api_main_app.include_router(router)
-

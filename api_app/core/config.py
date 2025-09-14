@@ -1,23 +1,46 @@
 """
 Settings for the API application.
 """
+import logging
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, PostgresDsn, AnyUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+LOG_DEFAULT_FORMAT = (
+    "[%(asctime)s.%(msecs)03d] %(module)10s:%(lineno)-3d %(levelname)-7s - %(message)s"
+)
+
+class LoggingSettings(BaseModel):
+    log_level: Literal[
+        "debug",
+        "info",
+        "warning",
+        "error",
+        "critical",
+    ] = "info"
+    log_format: str = LOG_DEFAULT_FORMAT
+    date_format: str = "%Y-%m-%d %H:%M:%S"
+
+    @property
+    def log_level_value(self) -> int:
+        return logging.getLevelNamesMapping()[self.log_level.upper()]
 
 
 class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
     users: str = "/users"
 
+
 class ApiPrefix(BaseModel):
     prefix: str = "/api"
     v1: ApiV1Prefix = ApiV1Prefix()
 
+
 class TGSettings(BaseModel):
     token: str = ""
+
 
 class DBSettings(BaseModel):
     url: PostgresDsn = ""
@@ -34,8 +57,10 @@ class DBSettings(BaseModel):
         "pk": "pk_%(table_name)s",
     }
 
+
 class WebAppSettings(BaseModel):
     url: str = ""
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -45,11 +70,13 @@ class Settings(BaseSettings):
         extra="ignore",
     )
     PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent.parent
-    tg: TGSettings = TGSettings()
-    default_language_code: str = "en"
     api: ApiPrefix = ApiPrefix()
+    default_language_code: str = "en"
     db: DBSettings = DBSettings()
+    logging:LoggingSettings = LoggingSettings()
+    tg: TGSettings = TGSettings()
     webapp: WebAppSettings = WebAppSettings()
+
 
 settings = Settings()
 # print(settings.model_dump())

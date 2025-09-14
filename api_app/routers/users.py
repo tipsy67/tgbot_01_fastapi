@@ -2,12 +2,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.testing.config import db
 from starlette import status
 
 from api_app.core.db_helper import db_helper
 from api_app.core.schemas.users import UserCreateUpdate, UserResponse
+from api_app.crud.tunes import get_channels_names
 from api_app.crud.users import set_user, get_user
+from api_app.services.users import check_subscription_bot_api
 
 # from api_app.tasks.tg_messages import print_task
 
@@ -26,20 +27,35 @@ router = APIRouter()
 
 
 @router.get("", response_model=UserResponse)
-async def get_user_rt(tg_user_id: int, session: AsyncSession = Depends(db_helper.session_getter)):
+async def get_user_rt(
+    tg_user_id: int, session: AsyncSession = Depends(db_helper.session_getter)
+):
     user = await get_user(tg_user_id, session)
     return user
 
+
 @router.post("", status_code=status.HTTP_200_OK, response_model=UserResponse)
-async def set_user_rt(tg_user: UserCreateUpdate, session: Annotated[AsyncSession, Depends(db_helper.session_getter)]):
+async def set_user_rt(
+    tg_user: UserCreateUpdate,
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+):
     user = await set_user(tg_user, session)
     return user
 
+
 @router.get("/status")
-async def get_status_rt(tg_user_id:int, session: AsyncSession = Depends(db_helper.session_getter)):
-    return {"status": False}
+async def get_status_rt(
+    tg_user_id: int, session: AsyncSession = Depends(db_helper.session_getter)
+):
+    required_channels = await get_channels_names(session)
+    required_channels_result = await check_subscription_bot_api(tg_user_id, required_channels)
+    subscribe_status = all([x.subscribe for x in required_channels_result])
+
+    return {"status": subscribe_status, "required_channels": required_channels_result}
+
 
 @router.get("/tickets")
-async def get_status_rt(tg_user_id:int, session: AsyncSession = Depends(db_helper.session_getter)):
+async def get_status_rt(
+    tg_user_id: int, session: AsyncSession = Depends(db_helper.session_getter)
+):
     return {"tickets": 10}
-

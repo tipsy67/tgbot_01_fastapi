@@ -20,28 +20,28 @@ async def get_user(tg_user_id: int, session: AsyncSession) -> User:
 
 
 async def find_user_by_uuid(user_uuid: uuid.UUID, session: AsyncSession) -> User:
-    stmt=select(User).where(User.user_uuid == user_uuid)
+    stmt = select(User).where(User.user_uuid == user_uuid)
     result = await session.scalars(stmt)
     return result.first()
 
 
 async def create_ticket_for_user(
-        user_id: int,
-        session: AsyncSession,
-        initiator_id:int|None=None,
-        action:str|None=None
+    user_id: int,
+    session: AsyncSession,
+    initiator_id: int | None = None,
+    action: str | None = None,
 ):
     ticket = Ticket(
         user_id=user_id,
         initiator_id=initiator_id,
         action=action,
-        created_at=datetime.now(timezone.utc).replace(tzinfo=None)
+        created_at=datetime.now(timezone.utc).replace(tzinfo=None),
     )
     session.add(ticket)
     await session.commit()
 
 
-async def create_user(tg_user: UserCreateUpdate, session:AsyncSession) -> User:
+async def create_user(tg_user: UserCreateUpdate, session: AsyncSession) -> User:
     user = User(**tg_user.model_dump(exclude={"payload"}))
     user.created_at = datetime.now(timezone.utc).replace(tzinfo=None)
     user.last_activity = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -68,7 +68,7 @@ async def set_user(tg_user: UserCreateUpdate, session: AsyncSession) -> User:
                     user_id=host_user.id,
                     initiator_id=user.id,
                     action=TicketAction.REFERRAL,
-                    session=session
+                    session=session,
                 )
     else:
         exclude = {"id", "created_at", "last_activity", "user_uuid"}
@@ -79,5 +79,3 @@ async def set_user(tg_user: UserCreateUpdate, session: AsyncSession) -> User:
         await session.commit()
 
     return user
-
-

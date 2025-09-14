@@ -11,7 +11,7 @@ class ReferencePoints:
 
     @staticmethod
     async def check_target_time(
-            start_time: datetime.datetime, delta_time: datetime.timedelta
+        start_time: datetime.datetime, delta_time: datetime.timedelta
     ) -> datetime.datetime | None:
         target_time = (start_time - delta_time).replace(tzinfo=datetime.timezone.utc)
         current_time = datetime.datetime.now(datetime.timezone.utc)
