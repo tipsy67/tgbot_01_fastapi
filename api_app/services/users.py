@@ -7,6 +7,7 @@ from api_app.core.config import settings
 from api_app.core.schemas.tunes import RequiredChannelRequest, RequiredChannelResponse
 
 log = logging.getLogger(__name__)
+SUBSCRIBED_STATUSES = {'member', 'administrator', 'creator'}
 
 def update_model_from_pydantic(db_model, pydantic_model, exclude: set = None):
     """Обновляет модель БД из Pydantic модели"""
@@ -37,7 +38,12 @@ async def check_subscription_bot_api(
                 ) as response:
                     data = await response.json()
                     if data.get('ok'):
-                        result_list_channels.append(RequiredChannelResponse(name=channel.name, subscribe=True))
+                        result = data['result']
+                        status = result['status']
+                        if status in SUBSCRIBED_STATUSES:
+                            result_list_channels.append(RequiredChannelResponse(name=channel.name, subscribe=True))
+                        else:
+                            result_list_channels.append(RequiredChannelResponse(name=channel.name, subscribe=False))
                     else:
                         result_list_channels.append(RequiredChannelResponse(name=channel.name, subscribe=False))
         return result_list_channels
