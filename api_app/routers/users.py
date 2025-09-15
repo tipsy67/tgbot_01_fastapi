@@ -7,7 +7,7 @@ from starlette import status
 from api_app.core.db_helper import db_helper
 from api_app.core.schemas.users import UserCreateUpdate, UserResponse
 from api_app.crud.tunes import get_channels_names
-from api_app.crud.users import set_user, get_user
+from api_app.crud.users import set_user, get_user, get_user_tickets
 from api_app.services.users import check_subscription_bot_api
 
 # from api_app.tasks.tg_messages import print_task
@@ -58,4 +58,5 @@ async def get_status_rt(
 async def get_status_rt(
     tg_user_id: int, session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    return {"tickets": 10}
+    tickets = await get_user_tickets(tg_user_id, session)
+    return {"tickets": tickets}

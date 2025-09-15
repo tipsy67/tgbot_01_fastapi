@@ -5,6 +5,7 @@ from datetime import timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.sql.functions import func
 
 from api_app.core.schemas.users import UserCreateUpdate
 from api_app.core.models.users import User, Ticket, TicketAction
@@ -39,6 +40,15 @@ async def create_ticket_for_user(
     )
     session.add(ticket)
     await session.commit()
+
+
+async def get_user_tickets(
+        user_id: int,
+        session: AsyncSession,
+) -> int:
+    stmt = select(func.count()).where(Ticket.user_id == user_id)
+    result = await session.scalar(stmt)
+    return result or 0
 
 
 async def create_user(tg_user: UserCreateUpdate, session: AsyncSession) -> User:
