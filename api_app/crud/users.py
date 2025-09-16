@@ -90,10 +90,15 @@ async def create_ticket_for_user(
 async def get_user_tickets(
         user_id: int,
         session: AsyncSession,
-) -> int:
+):
     stmt = select(func.count()).where(Ticket.user_id == user_id)
     result = await session.scalar(stmt)
-    return result or 0
+
+    stmt = select(Ticket.action, func.count().label("count")).where(Ticket.user_id == user_id).group_by(Ticket.action).order_by(func.count().desc())
+    detail_result = await session.execute(stmt)
+    detailed_tickets = detail_result.mappings().all()
+
+    return result or 0, detailed_tickets
 
 
 async def create_user(tg_user: UserCreateUpdate, session: AsyncSession) -> User:

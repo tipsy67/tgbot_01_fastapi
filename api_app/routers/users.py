@@ -58,8 +58,8 @@ async def get_status_rt(
 async def get_status_rt(
     tg_user_id: int, session: AsyncSession = Depends(db_helper.session_getter)
 ):
-    tickets = await get_user_tickets(tg_user_id, session)
-    return {"tickets": tickets}
+    tickets, detailed_tickets = await get_user_tickets(tg_user_id, session)
+    return {"tickets": tickets, "detailed_tickets": detailed_tickets}
 
 @router.get("/prizes")
 async def get_prizes_rt(session: AsyncSession = Depends(db_helper.session_getter)):
