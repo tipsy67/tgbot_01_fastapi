@@ -62,9 +62,13 @@ class User(Base):
 class Prize(Base):
     __tablename__ = "prizes"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(50), unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime)
     is_active: Mapped[bool] = mapped_column(default=False)
+    weight: Mapped[int] = mapped_column(default=1)
     description: Mapped[str] = mapped_column(String(255), default="")
+    quantity: Mapped[int] = mapped_column(default=0)
+    check_quantity: Mapped[bool] = mapped_column(default=False)
     tickets: Mapped[list["Ticket"]] = relationship(
         "Ticket", back_populates="prize", foreign_keys="Ticket.prize_id"
     )

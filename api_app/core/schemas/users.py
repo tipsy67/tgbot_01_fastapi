@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from api_app.core.config import settings
 
@@ -23,3 +23,17 @@ class UserResponse(UserCreateUpdate):
     user_uuid: UUID
     is_staff: bool = False
     is_admin: bool = False
+
+class PrizeCreateUpdate(BaseModel):
+    name: str = Field(max_length=50)
+    is_active: bool = Field(default=False)
+    weight: int = Field(default=1, ge=0, le=50, description="Weight must be between 1 and 50")
+    description: str = Field(max_length=255, default="")
+    quantity: int = Field(default=0)
+    check_quantity: bool = Field(default=False)
+
+class PrizeResponse(BaseModel):
+    name: str = Field(max_length=50)
+    bingo: bool = Field(default=False)
+    quantity: int = Field(default=0)
+    check_quantity: bool = Field(default=False)

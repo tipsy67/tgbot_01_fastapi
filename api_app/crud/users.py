@@ -3,13 +3,58 @@ import uuid
 from datetime import datetime
 from datetime import timezone
 
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio.session import AsyncSession
+from sqlalchemy.sql.expression import case
 from sqlalchemy.sql.functions import func
 
-from api_app.core.schemas.users import UserCreateUpdate
-from api_app.core.models.users import User, Ticket, TicketAction
+from api_app.core.schemas.users import UserCreateUpdate, PrizeCreateUpdate
+from api_app.core.models.users import User, Ticket, TicketAction, Prize
 from api_app.services.users import update_model_from_pydantic
+
+async def create_prize(prize: PrizeCreateUpdate, session: AsyncSession) -> Prize:
+    prize = Prize(**prize.model_dump())
+    prize.created_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    session.add(prize)
+    await session.commit()
+    return prize
+
+async def set_prize(prize: PrizeCreateUpdate, session:AsyncSession) -> Prize:
+    stmt = select(Prize).where(Prize.name == prize.name)
+    result = await session.scalars(stmt)
+    prize_db = result.first()
+    if not prize_db:
+        prize_db = await create_prize(prize, session)
+    else:
+        update_model_from_pydantic(prize_db, prize)
+        await session.commit()
+
+    return prize_db
+
+
+async def get_prizes_list(session: AsyncSession) -> list[Prize]:
+    stmt = select(Prize).where(
+        and_(
+            Prize.is_active == True,
+            case(
+                (Prize.check_quantity == True, Prize.quantity > 0),
+                else_=True
+            )
+        )
+    )
+    result = await session.scalars(stmt)
+    prizes = result.all()
+    return list(prizes)
+
+
+async def update_quantity_prize(prize_name: str, quantity: int, session: AsyncSession) -> Prize:
+    stmt = select(Prize).where(Prize.name == prize_name)
+    result = await session.scalars(stmt)
+    prize = result.first()
+    prize.quantity = quantity
+    await session.commit()
+    return prize
+
 
 
 async def get_user(tg_user_id: int, session: AsyncSession) -> User:

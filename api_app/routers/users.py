@@ -5,10 +5,10 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from starlette import status
 
 from api_app.core.db_helper import db_helper
-from api_app.core.schemas.users import UserCreateUpdate, UserResponse
+from api_app.core.schemas.users import UserCreateUpdate, UserResponse, PrizeCreateUpdate
 from api_app.crud.tunes import get_channels_names
-from api_app.crud.users import set_user, get_user, get_user_tickets
-from api_app.services.users import check_subscription_bot_api
+from api_app.crud.users import set_user, get_user, get_user_tickets, get_prizes_list, set_prize, update_quantity_prize
+from api_app.services.users import check_subscription_bot_api, get_winning_prize
 
 # from api_app.tasks.tg_messages import print_task
 
@@ -60,3 +60,15 @@ async def get_status_rt(
 ):
     tickets = await get_user_tickets(tg_user_id, session)
     return {"tickets": tickets}
+
+@router.get("/prizes")
+async def get_prizes_rt(session: AsyncSession = Depends(db_helper.session_getter)):
+    list_ = await get_prizes_list(session)
+    win, list_ = await get_winning_prize(list_)
+    if win.check_quantity:
+        await update_quantity_prize(win.name, win.quantity-1, session)
+    return {"prizes": list_}
+
+@router.post("/prizes")
+async def set_prize_rt(prize:PrizeCreateUpdate , session:AsyncSession = Depends(db_helper.session_getter)):
+    return {"prize": await set_prize(prize, session)}

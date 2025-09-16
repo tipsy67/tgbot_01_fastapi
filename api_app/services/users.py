@@ -1,10 +1,13 @@
 import asyncio
 import logging
+import random
 
 import aiohttp
 
 from api_app.core.config import settings
+from api_app.core.models.users import Prize
 from api_app.core.schemas.tunes import RequiredChannelRequest, RequiredChannelResponse
+from api_app.core.schemas.users import PrizeResponse
 
 log = logging.getLogger(__name__)
 SUBSCRIBED_STATUSES = {'member', 'administrator', 'creator'}
@@ -56,4 +59,17 @@ async def check_subscription_bot_api(
         log.exception(f"Unexpected error: {e}")
 
     return None
+
+
+async def get_winning_prize(prizes: list[Prize]) -> tuple[PrizeResponse|None, list[PrizeResponse]]:
+    """
+    Выберем приз с учетом весов
+    """
+    if len(prizes) == 0:
+        return None, []
+    list_: list[PrizeResponse] = [PrizeResponse.model_validate(prize, from_attributes=True) for prize in prizes]
+    weights = [prize.weight for prize in prizes]
+    win = random.choices(list_, weights=weights, k=1)[0]
+    win.bingo = True
+    return win, list_
 
