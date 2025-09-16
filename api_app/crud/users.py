@@ -97,6 +97,10 @@ async def get_user_tickets(
     stmt = select(Ticket.action, func.count().label("count")).where(Ticket.user_id == user_id).group_by(Ticket.action).order_by(func.count().desc())
     detail_result = await session.execute(stmt)
     detailed_tickets = detail_result.mappings().all()
+    detailed_tickets = [
+        {**ticket, "name": TicketAction.get_display_name(ticket["action"])}
+        for ticket in detailed_tickets
+    ]
 
     return result or 0, detailed_tickets
 
