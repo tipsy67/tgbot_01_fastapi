@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql.expression import case
 from sqlalchemy.sql.functions import func
 
+from api_app.core.config import settings
 from api_app.core.schemas.users import UserCreateUpdate, PrizeCreateUpdate
 from api_app.core.models.users import User, Ticket, TicketAction, Prize
 from api_app.services.users import update_model_from_pydantic
@@ -33,18 +34,24 @@ async def set_prize(prize: PrizeCreateUpdate, session:AsyncSession) -> Prize:
 
 
 async def get_prizes_list(session: AsyncSession) -> list[Prize]:
-    stmt = select(Prize).where(
-        and_(
-            Prize.is_active == True,
+    stmt = select(Prize).where(Prize.is_active == True)
+
+    if settings.prize.exclude_zero_quantity:
+        stmt = stmt.where(
             case(
                 (Prize.check_quantity == True, Prize.quantity > 0),
                 else_=True
             )
         )
-    )
+
     result = await session.scalars(stmt)
-    prizes = result.all()
-    return list(prizes)
+    prizes = list(result.all())
+    if not settings.prize.exclude_zero_quantity:
+        for prize in prizes:
+            if prize.check_quantity and prize.quantity == 0:
+                prize.weight = 0
+
+    return prizes
 
 
 async def update_quantity_prize(prize_name: str, quantity: int, session: AsyncSession) -> Prize:

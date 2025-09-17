@@ -61,6 +61,9 @@ class DBSettings(BaseModel):
 class WebAppSettings(BaseModel):
     url: str = ""
 
+class PrizeSettings(BaseModel):
+    exclude_zero_quantity: bool = False
+    weight_upper_limit: int = 50
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
@@ -74,6 +77,7 @@ class Settings(BaseSettings):
     default_language_code: str = "en"
     db: DBSettings = DBSettings()
     logging:LoggingSettings = LoggingSettings()
+    prize: PrizeSettings = PrizeSettings()
     tg: TGSettings = TGSettings()
     webapp: WebAppSettings = WebAppSettings()
 

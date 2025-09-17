@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from api_app.core.config import settings
 
@@ -27,10 +27,19 @@ class UserResponse(UserCreateUpdate):
 class PrizeCreateUpdate(BaseModel):
     name: str = Field(max_length=50)
     is_active: bool = Field(default=False)
-    weight: int = Field(default=1, ge=0, le=50, description="Weight must be between 1 and 50")
+    weight: int = Field(default=1, ge=0, description="Weight must be between 1 and 50")
     description: str = Field(max_length=255, default="")
     quantity: int = Field(default=0)
     check_quantity: bool = Field(default=False)
+
+    @field_validator('weight')
+    @classmethod
+    def validate_weight(cls, v):
+        if v > settings.prize.weight_upper_limit:
+            raise ValueError(
+                f"Weight must be <= {settings.prize.weight_upper_limit}"
+            )
+        return v
 
 class PrizeResponse(BaseModel):
     name: str = Field(max_length=50)
