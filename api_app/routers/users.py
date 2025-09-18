@@ -8,7 +8,8 @@ from api_app.core.config import settings
 from api_app.core.db_helper import db_helper
 from api_app.core.schemas.users import UserCreateUpdate, UserResponse, PrizeCreateUpdate, PrizeResponse
 from api_app.crud.tunes import get_channels_names
-from api_app.crud.users import set_user, get_user, get_user_tickets, get_prizes_list, set_prize, update_quantity_prize
+from api_app.crud.users import set_user, get_user, get_user_tickets, set_prize, \
+    update_prize_and_ticket, get_prizes_and_tickets
 from api_app.services.users import check_subscription_bot_api, get_winning_prize
 
 # from api_app.tasks.tg_messages import print_task
@@ -63,16 +64,16 @@ async def get_status_rt(
     return {"tickets": tickets, "detailed_tickets": detailed_tickets}
 
 @router.get("/prizes")
-async def get_prizes_rt(tg_user_id:int, session: AsyncSession = Depends(db_helper.session_getter)):
-    list_ = await get_prizes_list(session)
-    if tg_user_id !=0:
-        win, list_ = await get_winning_prize(list_)
-        if win.check_quantity:
-            if win.quantity > 0:
-                await update_quantity_prize(win.name, win.quantity-1, session)
+async def get_prizes_rt(tg_user_id:int, first_fetch:bool=False, session: AsyncSession = Depends(db_helper.session_getter)):
+    list_tickets, list_prizes = await get_prizes_and_tickets(tg_user_id, session)
+    # spins_left = len(list_tickets)
+    if not first_fetch:
+        win, list_prizes = await get_winning_prize(list_prizes)
+        await update_prize_and_ticket(win, next(iter(list_tickets), None), session)
+        # spins_left -= spins_left
     else:
-        list_ = [PrizeResponse.model_validate(item, from_attributes=True) for item in list_]
-    return {"prizes": list_}
+        list_prizes = [PrizeResponse.model_validate(item, from_attributes=True) for item in list_prizes]
+    return {"prizes": list_prizes, "spins_left": len(list_tickets)}
 
 @router.post("/prizes")
 async def set_prize_rt(prize:PrizeCreateUpdate , session:AsyncSession = Depends(db_helper.session_getter)):

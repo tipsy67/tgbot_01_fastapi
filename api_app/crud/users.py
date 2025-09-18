@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from datetime import datetime
@@ -7,11 +8,14 @@ from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.sql.expression import case
 from sqlalchemy.sql.functions import func
+from sqlalchemy.util.concurrency import asyncio
 
 from api_app.core.config import settings
-from api_app.core.schemas.users import UserCreateUpdate, PrizeCreateUpdate
+from api_app.core.schemas.users import UserCreateUpdate, PrizeCreateUpdate, PrizeResponse
 from api_app.core.models.users import User, Ticket, TicketAction, Prize
 from api_app.services.users import update_model_from_pydantic
+
+log = logging.getLogger(__name__)
 
 async def create_prize(prize: PrizeCreateUpdate, session: AsyncSession) -> Prize:
     prize = Prize(**prize.model_dump())
@@ -33,32 +37,48 @@ async def set_prize(prize: PrizeCreateUpdate, session:AsyncSession) -> Prize:
     return prize_db
 
 
-async def get_prizes_list(session: AsyncSession) -> list[Prize]:
-    stmt = select(Prize).where(Prize.is_active == True)
+async def get_prizes_and_tickets(tg_user_id:int, session: AsyncSession) -> tuple [list[Ticket], list[Prize]]:
+    stmt1 = select(Prize).where(Prize.is_active == True)
+    stmt2 = select(Ticket).where(Ticket.user_id==tg_user_id, Ticket.is_fired==False)
 
     if settings.prize.exclude_zero_quantity:
-        stmt = stmt.where(
+        stmt1 = stmt1.where(
             case(
                 (Prize.check_quantity == True, Prize.quantity > 0),
                 else_=True
             )
         )
 
-    result = await session.scalars(stmt)
-    prizes = list(result.all())
+    result1, result2 = await asyncio.gather(
+        session.scalars(stmt1),
+        session.scalars(stmt2)
+    )
+    prizes = list(result1.all())
+    tickets = list(result2.all())
+
     if not settings.prize.exclude_zero_quantity:
         for prize in prizes:
             if prize.check_quantity and prize.quantity == 0:
                 prize.weight = 0
 
-    return prizes
+    return tickets, prizes
 
 
-async def update_quantity_prize(prize_name: str, quantity: int, session: AsyncSession) -> Prize:
-    stmt = select(Prize).where(Prize.name == prize_name)
+async def update_prize_and_ticket(win: PrizeResponse, ticket: Ticket, session: AsyncSession) -> Prize|None:
+    stmt = select(Prize).where(Prize.name == win.name)
     result = await session.scalars(stmt)
     prize = result.first()
-    prize.quantity = quantity
+    if not prize:
+        log.exception(f"Prize {win.name} not found in database")
+        return None
+    if ticket:
+        ticket.is_fired = True
+        ticket.prize_id = prize.id
+        ticket.fired_at = datetime.now(timezone.utc).replace(tzinfo=None)
+    else:
+        log.exception(f"Ticket is None")
+    if win.check_quantity and win.quantity > 0:
+        prize.quantity = win.quantity - 1
     await session.commit()
     return prize
 

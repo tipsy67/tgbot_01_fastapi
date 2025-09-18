@@ -66,10 +66,12 @@ async def get_winning_prize(prizes: list[Prize]) -> tuple[PrizeResponse|None, li
     Выберем приз с учетом весов
     """
     if len(prizes) == 0:
+        log.exception(f"Prizes are empty")
         return None, []
     list_: list[PrizeResponse] = [PrizeResponse.model_validate(prize, from_attributes=True) for prize in prizes]
     weights = [prize.weight for prize in prizes]
     win = random.choices(list_, weights=weights, k=1)[0]
     win.bingo = True
+
     return win, list_
 
