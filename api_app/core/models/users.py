@@ -99,3 +99,5 @@ class Ticket(Base):
     prize: Mapped["Prize|None"] = relationship(
         "Prize", back_populates="tickets", foreign_keys=[prize_id]
     )
+    won_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+

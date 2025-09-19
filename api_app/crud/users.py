@@ -39,7 +39,7 @@ async def set_prize(prize: PrizeCreateUpdate, session:AsyncSession) -> Prize:
 
 async def get_prizes_and_tickets(tg_user_id:int, session: AsyncSession) -> tuple [list[Ticket], list[Prize]]:
     stmt1 = select(Prize).where(Prize.is_active == True)
-    stmt2 = select(Ticket).where(Ticket.user_id==tg_user_id, Ticket.is_fired==False)
+    stmt2 = select(Ticket).where(Ticket.user_id==tg_user_id, Ticket.prize_id==None)
 
     if settings.prize.exclude_zero_quantity:
         stmt1 = stmt1.where(
@@ -72,9 +72,8 @@ async def update_prize_and_ticket(win: PrizeResponse, ticket: Ticket, session: A
         log.exception(f"Prize {win.name} not found in database")
         return None
     if ticket:
-        ticket.is_fired = True
         ticket.prize_id = prize.id
-        ticket.fired_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        ticket.won_at = datetime.now(timezone.utc).replace(tzinfo=None)
     else:
         log.exception(f"Ticket is None")
     if win.check_quantity and win.quantity > 0:
