@@ -15,7 +15,8 @@ class TicketAction:
     BUYER = 'buyr'
 
     DISPLAY_NAMES = {
-        REFERRAL: 'Приглашение',
+        None: 'Участие',
+        REFERRAL: 'Реферал',
         BUYER: 'Покупка',
     }
 

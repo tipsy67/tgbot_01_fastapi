@@ -120,7 +120,14 @@ async def get_user_tickets(
     stmt = select(func.count()).where(Ticket.user_id == user_id)
     result = await session.scalar(stmt)
 
-    stmt = select(Ticket.action, func.count().label("count")).where(Ticket.user_id == user_id).group_by(Ticket.action).order_by(func.count().desc())
+    stmt = (select(
+        Ticket.action,
+        User.username,
+        Ticket.created_at
+    )
+            .outerjoin(User, Ticket.initiator_id == User.id)
+            .where(Ticket.user_id == user_id)
+            .order_by(Ticket.created_at.desc()))
     detail_result = await session.execute(stmt)
     detailed_tickets = detail_result.mappings().all()
     detailed_tickets = [
