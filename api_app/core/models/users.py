@@ -59,6 +59,8 @@ class User(Base):
         "Ticket", back_populates="initiator", foreign_keys="Ticket.initiator_id"
     )
 
+    def __str__(self):
+        return self.username
 
 class Prize(Base):
     __tablename__ = "prizes"
@@ -73,6 +75,9 @@ class Prize(Base):
     tickets: Mapped[list["Ticket"]] = relationship(
         "Ticket", back_populates="prize", foreign_keys="Ticket.prize_id"
     )
+
+    def __str__(self):
+        return self.name
 
 
 class Ticket(Base):
@@ -102,3 +107,5 @@ class Ticket(Base):
     )
     won_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
+    def __str__(self):
+        return f"{self.id} {self.action} {self.created_at}"
