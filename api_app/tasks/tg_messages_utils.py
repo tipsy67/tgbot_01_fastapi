@@ -1,22 +1,19 @@
 import datetime
 
-
-class ReferencePoints:
-    def __init__(self):
-        self.reference_points = [
-            datetime.timedelta(minutes=10),
-            datetime.timedelta(hours=10),
-            datetime.timedelta(days=1),
-        ]
-
-    @staticmethod
-    async def check_target_time(
-        start_time: datetime.datetime, delta_time: datetime.timedelta
-    ) -> datetime.datetime | None:
-        target_time = (start_time - delta_time).replace(tzinfo=datetime.timezone.utc)
-        current_time = datetime.datetime.now(datetime.timezone.utc)
-        if target_time > current_time:
-            return target_time
+from api_app.core.models.users import Prize, Ticket
+from api_app.core.taskiq_broker import redis_source
+from api_app.tasks.tg_messages import send_individual_message_to_users_task
 
 
-reference_points = ReferencePoints()
+async def get_target_time(
+        delta_time: datetime.timedelta
+) -> datetime.datetime:
+    current_time = datetime.datetime.now(datetime.timezone.utc)
+    target_time = current_time + delta_time
+    return target_time
+
+
+async def send_prize_info_to_user(prize:Prize, ticket:Ticket):
+    text = f"🎉 Поздравляем! \nВаш приз {prize.name}.\nНомер выигравшего билета {ticket.id}"
+    target_time = await get_target_time(datetime.timedelta(minutes=1))
+    await send_individual_message_to_users_task.schedule_by_time (redis_source, target_time, user_id=ticket.user_id, text=text)

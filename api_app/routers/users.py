@@ -11,6 +11,7 @@ from api_app.crud.tunes import get_channels_names
 from api_app.crud.users import set_user, get_user, get_user_tickets, set_prize, \
     update_prize_and_ticket, get_prizes_and_tickets
 from api_app.services.users import check_subscription_bot_api, get_winning_prize
+from api_app.tasks.tg_messages_utils import send_prize_info_to_user
 
 # from api_app.tasks.tg_messages import print_task
 
@@ -66,11 +67,10 @@ async def get_status_rt(
 @router.get("/prizes")
 async def get_prizes_rt(tg_user_id:int, first_fetch:bool=False, session: AsyncSession = Depends(db_helper.session_getter)):
     list_tickets, list_prizes = await get_prizes_and_tickets(tg_user_id, session)
-    # spins_left = len(list_tickets)
     if not first_fetch:
         win, list_prizes = await get_winning_prize(list_prizes)
-        await update_prize_and_ticket(win, next(iter(list_tickets), None), session)
-        # spins_left -= spins_left
+        prize, ticket = await update_prize_and_ticket(win, next(iter(list_tickets), None), session)
+        await send_prize_info_to_user(prize, ticket)
     else:
         list_prizes = [PrizeResponse.model_validate(item, from_attributes=True) for item in list_prizes]
     return {"prizes": list_prizes, "spins_left": len(list_tickets)}

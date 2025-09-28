@@ -64,7 +64,7 @@ async def get_prizes_and_tickets(tg_user_id:int, session: AsyncSession) -> tuple
     return tickets, prizes
 
 
-async def update_prize_and_ticket(win: PrizeResponse, ticket: Ticket, session: AsyncSession) -> Prize|None:
+async def update_prize_and_ticket(win: PrizeResponse, ticket: Ticket, session: AsyncSession) -> tuple[Prize, Ticket]|None:
     stmt = select(Prize).where(Prize.name == win.name)
     result = await session.scalars(stmt)
     prize = result.first()
@@ -79,7 +79,7 @@ async def update_prize_and_ticket(win: PrizeResponse, ticket: Ticket, session: A
     if win.check_quantity and win.quantity > 0:
         prize.quantity = win.quantity - 1
     await session.commit()
-    return prize
+    return prize, ticket
 
 
 
