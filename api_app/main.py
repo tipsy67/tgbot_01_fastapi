@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 
+from api_app.core.admin.auth import AdminAuth
 from api_app.core.admin.tunes import RequiredChannelAdmin
 from api_app.core.admin.users import UserAdmin, TicketAdmin, PrizeAdmin
 from api_app.core.config import settings
@@ -41,7 +42,8 @@ api_main_app = FastAPI(
     default_response_class=ORJSONResponse,
     lifespan=lifespan,
 )
-admin = Admin(api_main_app, db_helper.engine)
+authentication_backend = AdminAuth(secret_key="secret_key")
+admin = Admin(api_main_app, db_helper.engine, authentication_backend=authentication_backend)
 admin.add_view(UserAdmin)
 admin.add_view(TicketAdmin)
 admin.add_view(PrizeAdmin)
